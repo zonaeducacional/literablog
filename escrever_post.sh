@@ -3,6 +3,11 @@ cd "/home/sergio/Área de trabalho/hexo"
 
 echo "=== INICIANDO O COMPOSITOR ==="
 
+# 0. Garante configuração LOCAL (para o Admin funcionar)
+echo "Configurando para modo Local..."
+sed -i 's|root: /literablog/|root: /|' _config.yml
+sed -i 's|url: https://zonaeducacional.github.io/literablog|url: http://localhost:4000/literablog|' _config.yml
+
 # 1. Limpeza PRO: Mata qualquer coisa usando a porta 4000
 echo "Liberando a porta 4000..."
 fuser -k 4000/tcp >/dev/null 2>&1
@@ -16,26 +21,21 @@ SERVER_PID=$!
 # 3. Aguarda o servidor estar pronto (procura por 'Hexo is running' no log)
 echo "Aguardando o servidor ficar pronto..."
 count=0
-# Loop de espera (até 30 segundos)
 while ! grep -q "Hexo is running" server.log; do
   sleep 1
   ((count++))
   
-  # Verificação de erro imediato no log
   if grep -q "FATAL" server.log; then
-      echo "ERRO DETECTADO NO SERVIDOR:"
+      echo "ERRO DETECTADO:"
       cat server.log
-      echo "--------------------------------"
-      echo "Pressione ENTER para sair."
-      read
+      read -p "Enter para sair..."
       exit 1
   fi
 
   if [ $count -gt 30 ]; then
-    echo "Erro: O servidor demorou muito para responder."
-    echo "Últimas linhas do log:"
+    echo "Demorou demais."
     tail -n 10 server.log
-    read -p "Pressione ENTER para sair..."
+    read -p "Enter para sair..."
     exit 1
   fi
 done
@@ -50,14 +50,11 @@ xdg-open "http://localhost:4000/admin/"
 echo ""
 echo "================================================="
 echo "  EDITOR ABERTO NO SEU NAVEGADOR"
-echo "  Não feche esta janela enquanto estiver editando."
-echo "  Quando terminar, pressione ENTER aqui para desligar."
+echo "  Quando terminar, pressione ENTER aqui."
 echo "================================================="
 read
 
-# 6. Encerra o servidor ao sair
+# 6. Encerra
 echo "Desligando..."
 kill $SERVER_PID
 fuser -k 4000/tcp >/dev/null 2>&1
-echo "Tchau!"
-sleep 1
